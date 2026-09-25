@@ -27,4 +27,4 @@ namespace BL_Crud_Identity.Shared.DTOs.User
         public string City { get; set; } = string.Empty;
     }
 }
-}
+

@@ -1,0 +1,110 @@
+﻿@page "/login"
+@rendermode InteractiveAuto
+
+<PageTitle>Login</PageTitle>
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-5">
+            <div class="card shadow-sm">
+                <div class="card-header bg-success text-white">
+                    <h3 class="card-title mb-0">Sign In</h3>
+                </div>
+                <div class="card-body">
+
+                    @if (!string.IsNullOrEmpty(_errorMessage))
+                    {
+                        <div class="alert alert-danger" role="alert">
+                            @_errorMessage
+                        </div>
+                    }
+
+                    <EditForm Model="_loginDto" OnValidSubmit="HandleLoginAsync" FormName="LoginForm">
+                        <DataAnnotationsValidator />
+
+                        <div class="mb-3">
+                            <label class="form-label">Email Address</label>
+                            <InputText @bind-Value="_loginDto.Email" class="form-control" placeholder="name@example.com" />
+                            <ValidationMessage For="() => _loginDto.Email" class="text-danger" />
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Password</label>
+                            <InputText @bind-Value="_loginDto.Password" type="password" class="form-control" placeholder="••••••••" />
+                            <ValidationMessage For="() => _loginDto.Password" class="text-danger" />
+                        </div>
+
+                        <div class="mb-3 form-check">
+                            <InputCheckbox @bind-Value="_loginDto.RememberMe" id="rememberMe" class="form-check-input" />
+                            <label class="form-check-label" for="rememberMe">Remember me</label>
+                        </div>
+
+                        <div class="d-grid gap-2 mt-4">
+                            <button type="submit" class="btn btn-success btn-lg" disabled="@_isSubmitting">
+                                @if (_isSubmitting)
+                                {
+                                    <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                                    <span> Signing in...</span>
+                                }
+                                else
+                                {
+                                    <span>Login</span>
+                                }
+                            </button>
+                        </div>
+                    </EditForm>
+
+                </div>
+                <div class="card-footer text-center py-3">
+                    <p class="mb-0">Don't have an account? <a href="/register">Register here</a></p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    [SupplyParameterFromForm]
+    private LoginDto _loginDto { get; set; } = new();
+
+    private string _errorMessage = string.Empty;
+    private bool _isSubmitting;
+
+    protected override void OnInitialized()
+    {
+        _errorMessage = string.Empty;
+        _loginDto = new LoginDto();
+    }
+
+    /// <summary>
+    /// Handles the form submission to authenticate an existing user.
+    /// </summary>
+    private async Task HandleLoginAsync()
+    {
+        _isSubmitting = true;
+        _errorMessage = string.Empty;
+
+        try
+        {
+            var success = await ClientUserService.LoginUserAsync(_loginDto);
+
+            if (success)
+            {
+                // Authentication succeeded, redirect to home or management area
+                Navigation.NavigateTo("/");
+            }
+            else
+            {
+                _errorMessage = "Invalid login attempt. Please check your credentials.";
+            }
+        }
+        catch (Exception)
+        {
+            _errorMessage = $"Invalid login attempt. Please check your credentials.";
+        }
+        finally
+        {
+            _isSubmitting = false;
+        }
+    }
+}

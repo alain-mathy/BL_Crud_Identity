@@ -39,10 +39,30 @@ builder.Services.AddIdentityCore<ApplicationUser>(options =>
     {
         options.SignIn.RequireConfirmedAccount = false;
         options.Stores.SchemaVersion = IdentitySchemaVersions.Version3;
+
+        // Password security policies
+        options.Password.RequireDigit = true;                 // Requires at least one digit ('0'-'9')
+        options.Password.RequiredLength = 8;                  // Minimum password length of 8 characters
+        options.Password.RequireNonAlphanumeric = true;       // Requires at least one special character (e.g., !, @, #, $)
+        options.Password.RequireUppercase = true;             // Requires at least one uppercase letter ('A'-'Z')
+        options.Password.RequireLowercase = true;             // Requires at least one lowercase letter ('a'-'z')
+        options.Password.RequiredUniqueChars = 1;             // Requires at least a minimum number of distinct characters
+
+        // Lockout settings
+        options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(5);
+        options.Lockout.MaxFailedAccessAttempts = 5;          // Locks account after 5 failed attempts
+        options.Lockout.AllowedForNewUsers = true;
     })
     .AddEntityFrameworkStores<ApplicationDbContext>()
     .AddSignInManager()
     .AddDefaultTokenProviders();
+
+// Enable cookie schemes for the application
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultScheme = IdentityConstants.ApplicationScheme;
+    options.DefaultSignInScheme = IdentityConstants.ApplicationScheme;
+});
 
 builder.Services.AddSingleton<IEmailSender<ApplicationUser>, IdentityNoOpEmailSender>();
 

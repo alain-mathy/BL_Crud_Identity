@@ -1,0 +1,151 @@
+﻿@page "/register"
+@rendermode InteractiveAuto
+
+<PageTitle>Register</PageTitle>
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="card-title mb-0">Create a New Account</h3>
+                </div>
+                <div class="card-body">
+
+                    @if (_errors.Any())
+                    {
+                        <div class="alert alert-danger" role="alert">
+                            <ul class="mb-0">
+                                @foreach (var error in _errors)
+                                {
+                                    <li>@error</li>
+                                }
+                            </ul>
+                        </div>
+                    }
+
+                    <EditForm Model="_registerDto" OnValidSubmit="HandleRegisterAsync" FormName="RegisterForm">
+                        <DataAnnotationsValidator />
+
+                        <h5 class="mb-3 text-muted">Credentials</h5>
+                        <div class="mb-3">
+                            <label class="form-label">Email Address</label>
+                            <InputText @bind-Value="_registerDto.Email" class="form-control" />
+                            <ValidationMessage For="() => _registerDto.Email" class="text-danger" />
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Password</label>
+                                <InputText @bind-Value="_registerDto.Password" type="password" class="form-control" />
+                                <ValidationMessage For="() => _registerDto.Password" class="text-danger" />
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Confirm Password</label>
+                                <InputText @bind-Value="_registerDto.ConfirmPassword" type="password" class="form-control" />
+                                <ValidationMessage For="() => _registerDto.ConfirmPassword" class="text-danger" />
+                            </div>
+                        </div>
+
+                        <h5 class="mb-3 mt-4 text-muted">Profile Information</h5>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">First Name</label>
+                                <InputText @bind-Value="_registerDto.FirstName" class="form-control" />
+                                <ValidationMessage For="() => _registerDto.FirstName" class="text-danger" />
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Last Name</label>
+                                <InputText @bind-Value="_registerDto.LastName" class="form-control" />
+                                <ValidationMessage For="() => _registerDto.LastName" class="text-danger" />
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Street Address</label>
+                            <InputText @bind-Value="_registerDto.Street" class="form-control" />
+                            <ValidationMessage For="() => _registerDto.Street" class="text-danger" />
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">Zip Code</label>
+                                <InputText @bind-Value="_registerDto.ZipCode" class="form-control" />
+                                <ValidationMessage For="() => _registerDto.ZipCode" class="text-danger" />
+                            </div>
+                            <div class="col-md-8 mb-3">
+                                <label class="form-label">City</label>
+                                <InputText @bind-Value="_registerDto.City" class="form-control" />
+                                <ValidationMessage For="() => _registerDto.City" class="text-danger" />
+                            </div>
+                        </div>
+
+                        <div class="d-grid gap-2 mt-4">
+                            <button type="submit" class="btn btn-primary btn-lg" disabled="@_isSubmitting" >
+                                @if (_isSubmitting)
+                                {
+                                    <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                                    <span> Registering...</span>
+                                }
+                                else
+                                {
+                                    <span>Register</span>
+                                }
+                            </button>
+                        </div>
+                    </EditForm>
+
+                </div>
+                <div class="card-footer text-center py-3">
+                    <p class="mb-0">Already have an account? <a href="/login">Login here</a></p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    [SupplyParameterFromForm]
+    private RegisterDto _registerDto { get; set; } = new();
+
+    private IEnumerable<string> _errors = Enumerable.Empty<string>();
+    private bool _isSubmitting;
+
+    protected override void OnInitialized()
+    {
+        _errors = Enumerable.Empty<string>();
+        _registerDto = new RegisterDto();
+    }
+
+    /// <summary>
+    /// Handles the form submission to register a new user.
+    /// </summary>
+    private async Task HandleRegisterAsync()
+    {
+        _isSubmitting = true;
+        _errors = Enumerable.Empty<string>();
+
+        try
+        {
+            var resultErrors = await ClientUserService.RegisterUserAsync(_registerDto);
+
+            if (!resultErrors.Any())
+            {
+                // Registration succeeded, redirect to login page
+                Navigation.NavigateTo("/login");
+            }
+            else
+            {
+                _errors = resultErrors;
+            }
+        }
+        catch (Exception)
+        {
+            _errors = new List<string> { "An unexpected error occurred. Please try again later." };
+        }
+        finally
+        {
+            _isSubmitting = false;
+        }
+    }
+}

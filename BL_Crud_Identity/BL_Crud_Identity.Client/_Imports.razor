@@ -8,3 +8,10 @@
 @using Microsoft.AspNetCore.Components.Web.Virtualization
 @using Microsoft.JSInterop
 @using BL_Crud_Identity.Client
+@using BL_Crud_Identity.Shared
+@using BL_Crud_Identity.Shared.DTOs
+@using BL_Crud_Identity.Shared.Interfaces
+@using BL_Crud_Identity.Shared.DTOs.Auth
+
+@inject IUserService ClientUserService
+@inject NavigationManager Navigation
