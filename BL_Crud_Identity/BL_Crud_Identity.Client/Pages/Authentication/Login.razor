@@ -19,7 +19,7 @@
                         </div>
                     }
 
-                    <EditForm Model="_loginDto" OnValidSubmit="HandleLoginAsync" FormName="LoginForm">
+                    <EditForm Model="_loginDto" method="post" OnValidSubmit="HandleLoginAsync" FormName="LoginForm">
                         <DataAnnotationsValidator />
 
                         <div class="mb-3">
@@ -69,11 +69,13 @@
 
     private string _errorMessage = string.Empty;
     private bool _isSubmitting;
+    private bool _hasError;
 
     protected override void OnInitialized()
     {
         _errorMessage = string.Empty;
         _loginDto = new LoginDto();
+        _hasError = Navigation.Uri.Contains("error=true");
     }
 
     /// <summary>
@@ -90,15 +92,16 @@
 
             if (success)
             {
-                // Authentication succeeded, redirect to home or management area
-                Navigation.NavigateTo("/");
+                // Force a true HTTP reload (forceLoad: true) to ensure the Identity cookie
+                // is correctly written and recognized by the browser without layout bleeding.
+                Navigation.NavigateTo("/", forceLoad: true);
             }
             else
             {
-                _errorMessage = "Invalid login attempt. Please check your credentials.";
+                Navigation.NavigateTo("auth/login?error=true", forceLoad: true);
             }
         }
-        catch (Exception)
+        catch (Exception ex)
         {
             _errorMessage = $"Invalid login attempt. Please check your credentials.";
         }

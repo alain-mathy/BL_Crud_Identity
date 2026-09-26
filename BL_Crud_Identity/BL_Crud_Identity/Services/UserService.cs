@@ -59,7 +59,7 @@ namespace BL_Crud_Identity.Services
 
             // Sign in using the sign-in manager which handles cookie creation
             var result = await _signInManager.PasswordSignInAsync(
-                user,
+                dto.Email,
                 dto.Password,
                 dto.RememberMe,
                 lockoutOnFailure: false);

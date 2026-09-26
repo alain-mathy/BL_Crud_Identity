@@ -26,6 +26,8 @@ namespace BL_Crud_Identity.Controllers
         /// <summary>
         /// Registers a new user.
         /// </summary>
+        /// <param name="dto"></param>
+        /// <returns></returns>
         [HttpPost("register")]
         [AllowAnonymous]
         [IgnoreAntiforgeryToken] // Allow anonymous access for registration
@@ -41,8 +43,10 @@ namespace BL_Crud_Identity.Controllers
         }
 
         /// <summary>
-        /// Authenticates a user.
+        /// Logs in a user and returns an authentication token.
         /// </summary>
+        /// <param name="dto"></param>
+        /// <returns></returns>
         [HttpPost("login")]
         [AllowAnonymous] // Anyone can attempt to login
         public async Task<IActionResult> Login([FromBody] LoginDto dto)
@@ -83,6 +87,8 @@ namespace BL_Crud_Identity.Controllers
         /// <summary>
         /// Retrieves a specific user by ID.
         /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
         [HttpGet("{id}")]
         public async Task<ActionResult<UserDto>> GetById(string id)
         {
@@ -95,8 +101,10 @@ namespace BL_Crud_Identity.Controllers
         }
 
         /// <summary>
-        /// Updates an existing user.
+        /// Updates a user's profile.
         /// </summary>
+        /// <param name="dto"></param>
+        /// <returns></returns>
         [HttpPut]
         public async Task<IActionResult> Update([FromBody] UserUpdateDto dto)
         {
@@ -109,8 +117,10 @@ namespace BL_Crud_Identity.Controllers
         }
 
         /// <summary>
-        /// Deletes a specific user by ID.
+        /// Deletes a user by ID.
         /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(string id)
         {

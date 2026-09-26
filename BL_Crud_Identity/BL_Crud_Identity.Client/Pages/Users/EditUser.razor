@@ -1,0 +1,181 @@
+﻿@page "/users/edit/{Id}"
+@rendermode InteractiveAuto
+
+<PageTitle>Edit User Profile</PageTitle>
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="card-title mb-0"><i class="bi bi-pencil-square"></i> Edit User Profile</h3>
+                </div>
+                <div class="card-body">
+
+                    @if (!string.IsNullOrEmpty(_errorMessage))
+                    {
+                        <div class="alert alert-danger" role="alert">
+                            @_errorMessage
+                        </div>
+                    }
+
+                    @if (_isLoading)
+                    {
+                        <div class="d-flex justify-content-center my-5">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Loading profile details...</span>
+                            </div>
+                        </div>
+                    }
+                    else
+                    {
+                        <EditForm Model="_updateDto" OnValidSubmit="HandleUpdateUserAsync">
+                            <DataAnnotationsValidator />
+
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">First Name</label>
+                                    <InputText @bind-Value="_updateDto.FirstName" class="form-control" />
+                                    <ValidationMessage For="() => _updateDto.FirstName" class="text-danger" />
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Last Name</label>
+                                    <InputText @bind-Value="_updateDto.LastName" class="form-control" />
+                                    <ValidationMessage For="() => _updateDto.LastName" class="text-danger" />
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Street Address</label>
+                                <InputText @bind-Value="_updateDto.Street" class="form-control" />
+                                <ValidationMessage For="() => _updateDto.Street" class="text-danger" />
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-4 mb-3">
+                                    <label class="form-label">Zip Code</label>
+                                    <InputText @bind-Value="_updateDto.ZipCode" class="form-control" />
+                                    <ValidationMessage For="() => _updateDto.ZipCode" class="text-danger" />
+                                </div>
+                                <div class="col-md-8 mb-3">
+                                    <label class="form-label">City</label>
+                                    <InputText @bind-Value="_updateDto.City" class="form-control" />
+                                    <ValidationMessage For="() => _updateDto.City" class="text-danger" />
+                                </div>
+                            </div>
+
+                            <div class="d-flex gap-2 mt-4">
+                                <button type="submit" class="btn btn-primary flex-grow-1" disabled="@_isSubmitting">
+                                    @if (_isSubmitting)
+                                    {
+                                        <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                                        <span> Saving...</span>
+                                    }
+                                    else
+                                    {
+                                        <span>Save Changes</span>
+                                    }
+                                </button>
+                                <button type="button" class="btn btn-outline-secondary" @onclick="NavigateBack" disabled="@_isSubmitting">
+                                    Cancel
+                                </button>
+                            </div>
+                        </EditForm>
+                    }
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public string Id { get; set; } = string.Empty;
+
+    private UserUpdateDto _updateDto = new();
+    private bool _isLoading = true;
+    private bool _isSubmitting;
+    private string _errorMessage = string.Empty;
+
+    /// <summary>
+    /// Lifecycle method invoked when the component receives its parameters.
+    /// Fetches the user profile based on the unique routing identifier.
+    /// </summary>
+    protected override async Task OnInitializedAsync()
+    {
+        _isLoading = true;
+        _errorMessage = string.Empty;
+
+        try
+        {
+            var user = await ClientUserService.GetUserByIdAsync(Id);
+            
+            if (user != null)
+            {
+                // Map the profile details to the update DTO structure
+                _updateDto = new UserUpdateDto
+                {
+                    Id = user.Id,
+                    FirstName = user.FirstName,
+                    LastName = user.LastName,
+                    Street = user.Street,
+                    ZipCode = user.ZipCode,
+                    City = user.City
+                };
+            }
+            else
+            {
+                _errorMessage = "The requested user profile could not be found.";
+            }
+        }
+        catch (Exception ex)
+        {
+            _errorMessage = $"An error occurred while loading profile details: {ex.Message}";
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+
+    /// <summary>
+    /// Handles the form submission to persist modified profile properties.
+    /// </summary>
+    private async Task HandleUpdateUserAsync()
+    {
+        _isSubmitting = true;
+        _errorMessage = string.Empty;
+
+        try
+        {
+            var success = await ClientUserService.UpdateUserAsync(_updateDto);
+            
+            if (success)
+            {
+                // Route navigation back to the administration list view
+                NavigateBack();
+            }
+            else
+            {
+                _errorMessage = "The database rejected the updates. Please ensure all values comply with core validations.";
+            }
+        }
+        catch (Exception ex)
+        {
+            _errorMessage = $"An error occurred while saving profile changes: {ex.Message}";
+        }
+        finally
+        {
+            _isSubmitting = false;
+        }
+    }
+
+    /// <summary>
+    /// Redirects the view back to the main management grid.
+    /// </summary>
+    private void NavigateBack()
+    {
+        Navigation.NavigateTo("/usersList");
+    }
+}
