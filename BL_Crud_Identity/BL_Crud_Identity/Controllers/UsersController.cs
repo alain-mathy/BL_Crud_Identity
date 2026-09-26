@@ -131,5 +131,20 @@ namespace BL_Crud_Identity.Controllers
             }
             return NoContent();
         }
+
+        /// <summary>
+        /// Authenticates the current user session out of the application and clears identity cookies.
+        /// </summary>
+        [HttpPost("logout")]
+        [AllowAnonymous] // Anyone can request a logout session clear
+        public async Task<IActionResult> Logout()
+        {
+            var signInManager = HttpContext.RequestServices.GetRequiredService<SignInManager<ApplicationUser>>();
+
+            await signInManager.SignOutAsync();
+
+            // Redirect completely back to home page to re-evaluate auth states
+            return Redirect("/");
+        }
     }
 }

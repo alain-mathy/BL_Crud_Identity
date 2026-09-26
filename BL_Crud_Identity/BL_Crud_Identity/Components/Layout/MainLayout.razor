@@ -1,23 +1,66 @@
 ﻿@inherits LayoutComponentBase
+@using BL_Crud_Identity.Client.Pages
+@inject NavigationManager NavManager
 
 <div class="page">
     <div class="sidebar">
-        <NavMenu />
+        @* Our custom sidebar menu *@
+        <CustomNavMenu />
     </div>
 
     <main>
-        <div class="top-row px-4">
-            <a href="https://learn.microsoft.com/aspnet/core/" target="_blank">About</a>
+        @* --- CUSTOM DYNAMIC HEADER REPLACING THE NATIVE ABOUT BAR --- *@
+        <div class="top-row px-4 navbar navbar-light bg-light border-bottom shadow-sm justify-content-between">
+            <span class="navbar-brand fw-bold text-primary mb-0 fs-5">Dashboard</span>
+            
+            <div class="d-flex align-items-center ms-auto">
+                <AuthorizeView>
+                    <Authorized>
+                        @* Displayed when authenticated *@
+                        <span class="me-3 text-muted">
+                            Connected as
+                            <i class="bi bi-person-circle"></i> @context.User.Identity?.Name
+                        </span>
+                        <form action="api/users/logout" method="post" class="m-0">
+                            <button type="submit" class="btn btn-sm btn-outline-danger">
+                                <i class="bi bi-box-arrow-right"></i> Logout
+                            </button>
+                        </form>
+                    </Authorized>
+                    <NotAuthorized>
+                        @* Displayed when anonymous *@
+                        <a href="/login" class="btn btn-sm btn-outline-success me-2">Login</a>
+                        <a href="/register" class="btn btn-sm btn-primary">Register</a>
+                    </NotAuthorized>
+                </AuthorizeView>
+            </div>
         </div>
 
+        @* --- MAIN CONTENT BODY --- *@
         <article class="content px-4">
             @Body
         </article>
     </main>
 </div>
 
-<div id="blazor-error-ui" data-nosnippet>
+<div id="blazor-error-ui" data-enhance>
     An unhandled error has occurred.
     <a href="." class="reload">Reload</a>
-    <span class="dismiss">🗙</span>
+    <a href="." class="dismiss">🗙</a>
 </div>
+
+@code {
+    /// <summary>
+    /// Monitors layout initialization. 
+    /// If the user lands on the strict root URL '/', redirects them immediately to '/home'.
+    /// </summary>
+    protected override void OnInitialized()
+    {
+        var relativePath = NavManager.ToBaseRelativePath(NavManager.Uri);
+        
+        if (string.IsNullOrEmpty(relativePath) || relativePath == "/")
+        {
+            NavManager.NavigateTo("home");
+        }
+    }
+}

@@ -1,0 +1,43 @@
+﻿@page "/home"
+@using System.Security.Claims
+@rendermode InteractiveAuto
+
+@* --- MAIN CONTENT BODY SECTION ONLY --- *@
+<main class="mt-3">
+    <AuthorizeView>
+        <Authorized>
+            @* User is authenticated: Render the EditUser view directly *@
+            @{
+                var userId = context.User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? string.Empty;
+            }
+            @if (!string.IsNullOrEmpty(userId))
+            {
+                <div class="card border-0">
+                    <EditUser Id="@userId" />
+                </div>
+            }
+        </Authorized>
+        <NotAuthorized>
+            @* User is anonymous: Show welcome banner and Embed the Login screen *@
+            <div class="row align-items-center pt-2">
+                <div class="col-lg-6 mb-4 text-center text-lg-start">
+                    <h1 class="display-4 fw-bold text-dark mb-3">Welcome to BL_Crud_Identity</h1>
+                    <p class="lead text-muted">
+                        A clean, simple, and optimized full-stack tutorial implementing 
+                        a robust user management system with Blazor Auto rendering mode and ASP.NET Core Identity.
+                    </p>
+                </div>
+                <div class="col-lg-5 offset-lg-1">
+                    <div class="p-3">
+                        <Login />
+                    </div>
+                </div>
+            </div>
+        </NotAuthorized>
+    </AuthorizeView>
+</main>
+
+@code {
+    [CascadingParameter]
+    private Task<AuthenticationState>? AuthStateTask { get; set; }
+}
