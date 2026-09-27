@@ -53,6 +53,7 @@ builder.Services.AddIdentityCore<ApplicationUser>(options =>
         options.Lockout.MaxFailedAccessAttempts = 5;          // Locks account after 5 failed attempts
         options.Lockout.AllowedForNewUsers = true;
     })
+    .AddRoles<IdentityRole>()
     .AddEntityFrameworkStores<ApplicationDbContext>()
     .AddSignInManager()
     .AddDefaultTokenProviders();
@@ -101,5 +102,25 @@ app.MapRazorComponents<App>()
 
 // Add additional endpoints required by the Identity /Account Razor components.
 app.MapAdditionalIdentityEndpoints();
+
+// Scope configuration to execute data seeding safely on application startup
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    try
+    {
+        var userManager = services.GetRequiredService<UserManager<ApplicationUser>>();
+        var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
+
+        // Execute the seeding logic asynchronously
+        await IdentityDataInitializer.SeedDataAsync(userManager, roleManager);
+    }
+    catch (Exception ex)
+    {
+        // Keep track of database seeding initialization failures if any
+        var logger = services.GetRequiredService<ILogger<Program>>();
+        logger.LogError(ex, "An error occurred while seeding the Identity database.");
+    }
+}
 
 app.Run();
