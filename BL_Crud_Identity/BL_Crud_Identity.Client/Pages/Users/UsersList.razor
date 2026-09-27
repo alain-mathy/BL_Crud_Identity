@@ -41,6 +41,7 @@
                         <th>Full Name</th>
                         <th>Email Address</th>
                         <th>Location</th>
+                        <th>Role</th>
                         <th class="text-center" style="width: 180px;">Actions</th>
                     </tr>
                 </thead>
@@ -54,6 +55,11 @@
                             <td>@user.Email</td>
                             <td>
                                 <small class="text-muted">@user.FullAddress</small>
+                            </td>
+                            <td>
+                                <span class="badge @(user.Role == "Admin" ? "bg-danger" : "bg-primary")">
+                                    @user.Role
+                                </span>
                             </td>
                             <td class="text-center">
                                 <div class="btn-group btn-group-sm" role="group">

@@ -15,5 +15,6 @@ namespace BL_Crud_Identity.Shared.DTOs.User
         public string Street { get; set; } = string.Empty;
         public string ZipCode { get; set; } = string.Empty;
         public string City { get; set; } = string.Empty;
+        public string Role { get; set; } = string.Empty;
     }
 }

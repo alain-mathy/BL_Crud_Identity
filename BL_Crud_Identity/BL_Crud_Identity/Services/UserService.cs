@@ -34,18 +34,22 @@ namespace BL_Crud_Identity.Services
                 LastName = dto.LastName,
                 Street = dto.Street,
                 ZipCode = dto.ZipCode,
-                City = dto.City
+                City = dto.City,
+                EmailConfirmed = true
             };
 
             var result = await _userManager.CreateAsync(user, dto.Password);
 
             if (result.Succeeded)
             {
+                // Natively binds the newly created account to the standard 'User' role
+                await _userManager.AddToRoleAsync(user, "User");
                 return Enumerable.Empty<string>();
             }
 
             return result.Errors.Select(e => e.Description);
         }
+
 
         /// <inheritdoc />
         public async Task<bool> LoginUserAsync(LoginDto dto)
@@ -69,8 +73,15 @@ namespace BL_Crud_Identity.Services
 
         public async Task<IEnumerable<UserDto>> GetAllUsersAsync()
         {
-            return await _userManager.Users
-                .Select(user => new UserDto
+            var users = await _userManager.Users.ToListAsync();
+            var userDtos = new List<UserDto>();
+
+            foreach (var user in users)
+            {
+                // Fetch the roles associated with the current user context
+                var roles = await _userManager.GetRolesAsync(user);
+
+                userDtos.Add(new UserDto
                 {
                     Id = user.Id,
                     Email = user.Email ?? string.Empty,
@@ -78,16 +89,20 @@ namespace BL_Crud_Identity.Services
                     LastName = user.LastName,
                     Street = user.Street,
                     ZipCode = user.ZipCode,
-                    City = user.City
-                })
-                .ToListAsync();
+                    City = user.City,
+                    Role = roles.FirstOrDefault() ?? "No Role" // Assign the primary role or fallback
+                });
+            }
+
+            return userDtos;
         }
 
-        /// <inheritdoc />
         public async Task<UserDto?> GetUserByIdAsync(string id)
         {
             var user = await _userManager.FindByIdAsync(id);
             if (user == null) return null;
+
+            var roles = await _userManager.GetRolesAsync(user);
 
             return new UserDto
             {
@@ -97,7 +112,8 @@ namespace BL_Crud_Identity.Services
                 LastName = user.LastName,
                 Street = user.Street,
                 ZipCode = user.ZipCode,
-                City = user.City
+                City = user.City,
+                Role = roles.FirstOrDefault() ?? "No Role"
             };
         }
 
