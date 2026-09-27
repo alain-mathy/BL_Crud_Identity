@@ -65,9 +65,48 @@ This repository was created step-by-step using atomic commits to provide a clear
   ```
 ---
 
-## 🔮 Roadmap for Part 2: Role-Based Access Control (RBAC)
-In the next section of this course, we will scale this project to support enterprise access controls:
-- Seed default **Admin** and **User** roles into the database on startup.
-- Update `RegisterDto` or assign default fallback roles to newly created users.
-- Enforce strict route protection using `@attribute [Authorize(Roles = "Admin")]` on `UsersList`.
-- Hide UI elements conditionally using `<AuthorizeView Roles="Admin">`.
+## 🔐 Part 2: Role-Based Access Control (RBAC) & Data Ownership
+
+This section scales the architecture to support enterprise-grade security policies, automatically segregation roles, and strictly validation database resource access rights at the server perimeter.
+
+### ⏱️ Step-by-Step Part 2 Git Journey
+
+- `feat(tuto-p2): Add automatic database seeding for default Admin/User roles and master account`
+  ```text
+  Add IdentityDataInitializer
+  Adapt Program.cs (Server):
+    .AddRoles<IdentityRole>() to AddIdentityCore
+  see just before app.run() -> using (var scope = app.Services.CreateScope())
+  ```
+- `feat(tuto-p2): Assign default User role inside the strict IUserService Register workflow`
+  ```text
+  Add Role -> UserDto
+  Modify UserService -> RegisterAync -> add default role User
+  Modify UserService for roles -> GetAllUsersAsync, GetUserByIdAsync
+  Modify UsersList -> add Role
+  ```
+- `feat(tuto-p2): update UsersList grid table view UI to display dynamic role badges`
+  ```text
+    Add Role -> UserDto
+    Modify UserService -> RegisterAync -> add default role User
+    Modify UserService for roles -> GetAllUsersAsync, GetUserByIdAsync
+    Modify UsersList -> add Role
+  ```
+- `feat(tuto-p2): Restructure Identity Views & Navigation Profiles`
+  ```text
+  Adapt UsersList depending on Admin/User/Not connected
+  Adapt CustomNavMenu depending on Admin/User
+  ```
+- `secure(tuto-p2): Core API Controller Hardening`
+  ```text
+  Secure UsersController
+  ```
+
+---
+
+## 🏗️ Core Security Mechanisms Implemented in Part 2
+
+1. **Automated Seeding System:** The application safely generates essential system roles (`Admin`, `User`) and a master power account (`admin@admin.com`) invisibly on the very first execution lifecycle.
+2. **Dynamic UI Shifting:** Regular users are completely sandboxed away from the administration layout grid. Selecting the navigation option transparently routes their session straight to their specific personal data sheet.
+3. **Double-Gate Server Validation:** URL obfuscation or structural JSON payload manipulation is instantly stopped at the API Controller layer. Request tokens are continuously validated against active session Claims, systematically returning an `HTTP 403 Forbidden` response header upon unauthorized cross-profile interactions.
+
