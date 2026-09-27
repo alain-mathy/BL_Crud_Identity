@@ -11,9 +11,19 @@
             <Authorized>
                 @* Renders the navigation link ONLY if the user is logged in *@
                 <div class="nav-item px-3">
-                    <NavLink class="nav-link text-white" href="usersList" Match="NavLinkMatch.All">
-                        <span class="bi bi-people-fill" aria-hidden="true"></span> Users Management
-                    </NavLink>
+                    @if (context.User.IsInRole("Admin"))
+                    {
+                        <NavLink class="nav-link text-white" href="usersList" Match="NavLinkMatch.All">
+                            <span class="bi bi-people-fill" aria-hidden="true"></span> <span>Users Management</span>
+                        </NavLink>
+                    }
+                    else
+                    {
+                        var currentUserId = context.User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? string.Empty;
+                        <NavLink class="nav-link text-white" href="@($"users/edit/{currentUserId}")" Match="NavLinkMatch.All">
+                            <span class="bi bi-person-lines-fill" aria-hidden="true"></span> <span>My Profile</span>
+                        </NavLink>
+                    }
                 </div>
             </Authorized>
             <NotAuthorized>
