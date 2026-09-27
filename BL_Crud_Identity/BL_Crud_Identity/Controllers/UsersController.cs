@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace BL_Crud_Identity.Controllers
 {
@@ -78,6 +79,7 @@ namespace BL_Crud_Identity.Controllers
         /// Retrieves all users.
         /// </summary>
         [HttpGet]
+        [Authorize(Roles = "Admin")] // Only Admins can access this endpoint
         public async Task<ActionResult<IEnumerable<UserDto>>> GetAll()
         {
             var users = await _userService.GetAllUsersAsync();
@@ -90,13 +92,21 @@ namespace BL_Crud_Identity.Controllers
         /// <param name="id"></param>
         /// <returns></returns>
         [HttpGet("{id}")]
-        public async Task<ActionResult<UserDto>> GetById(string id)
+        [Authorize]
+        public async Task<IActionResult> GetById(string id)
         {
-            var user = await _userService.GetUserByIdAsync(id);
-            if (user == null)
+            // Extract the unique identifier of the currently logged-in account
+            var currentUserId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var isAdmin = User.IsInRole("Admin");
+
+            // Security check: Block the request if the user is not an Admin AND is trying to read someone else's data
+            if (!isAdmin && currentUserId != id)
             {
-                return NotFound();
+                return Forbid(); // Returns HTTP 403 Forbidden safely
             }
+
+            var user = await _userService.GetUserByIdAsync(id);
+            if (user == null) return NotFound();
             return Ok(user);
         }
 
@@ -106,14 +116,21 @@ namespace BL_Crud_Identity.Controllers
         /// <param name="dto"></param>
         /// <returns></returns>
         [HttpPut]
+        [Authorize] // Only authenticated users can update their profile]
         public async Task<IActionResult> Update([FromBody] UserUpdateDto dto)
         {
-            var result = await _userService.UpdateUserAsync(dto);
-            if (!result)
+            var currentUserId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var isAdmin = User.IsInRole("Admin");
+
+            // Security check: Block the request if the user is not an Admin AND is trying to modify someone else's data
+            if (!isAdmin && currentUserId != dto.Id)
             {
-                return BadRequest("Failed to update user profile.");
+                return Forbid(); // Returns HTTP 403 Forbidden safely
             }
-            return NoContent();
+
+            var success = await _userService.UpdateUserAsync(dto);
+            if (!success) return BadRequest("Could not update user details.");
+            return Ok(success);
         }
 
         /// <summary>
@@ -122,6 +139,7 @@ namespace BL_Crud_Identity.Controllers
         /// <param name="id"></param>
         /// <returns></returns>
         [HttpDelete("{id}")]
+        [Authorize(Roles = "Admin")] // Only Admins can delete users
         public async Task<IActionResult> Delete(string id)
         {
             var result = await _userService.DeleteUserAsync(id);
